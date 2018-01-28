@@ -1,5 +1,6 @@
 package com.example.transaction;
 
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,12 +10,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.JUnitRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
+import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.PayloadDocumentation;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.Charset;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
@@ -48,6 +53,8 @@ public class TransactionStatisticsApplicationTests {
                         .withScheme("http")
                         .withHost("localhost")
                         .withPort(8080))
+                .alwaysDo(document("{method-name}",
+                        preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())))
                 .build();
     }
 
@@ -64,16 +71,43 @@ public class TransactionStatisticsApplicationTests {
     }
 
     @Test
-    public void createTransactions() throws Exception {
+    public void createTransactionsSuccess() throws Exception {
 
-        RestDocumentationResultHandler document = this.documentPrettyPrintReqResp("transactions");
+        RestDocumentationResultHandler snippet = this.documentPrettyPrintReqResp("transactions-success");
+
+        long timestamp = Instant.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("amount", 12.3);
+        requestBody.put("timestamp", timestamp);
 
         this.mockMvc.perform(post("/transactions")
                 .contentType(this.contentType)
-                .content("{}"))
+                .content(requestBody.toString()))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(""))
-                .andDo(document);
+                .andDo(snippet.document(
+                        PayloadDocumentation.requestFields(new FieldDescriptor[]{
+                                PayloadDocumentation.fieldWithPath("amount").description("transaction amount"),
+                                PayloadDocumentation.fieldWithPath("timestamp").description("transaction time in epoch in millis in UTC time zone (this is not current timestamp)")
+                        })
+                ));
+    }
+
+    @Test
+    public void createTransactionsNoContent() throws Exception {
+
+        RestDocumentationResultHandler snippet = this.documentPrettyPrintReqResp("transactions-no-content");
+
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("amount", 12.3);
+        requestBody.put("timestamp", 1478192204000l);
+
+        this.mockMvc.perform(post("/transactions")
+                .contentType(this.contentType)
+                .content(requestBody.toString()))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""))
+                .andDo(snippet);
     }
 
     /**

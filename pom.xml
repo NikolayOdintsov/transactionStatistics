@@ -22,6 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+        <concurrentJunit.version>1.0.2</concurrentJunit.version>
     </properties>
 
     <dependencies>
@@ -40,6 +41,15 @@
             <artifactId>spring-restdocs-mockmvc</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Concurrent JUnit -->
+        <!-- https://mvnrepository.com/artifact/com.vmlens/concurrent-junit -->
+        <dependency>
+            <groupId>com.vmlens</groupId>
+            <artifactId>concurrent-junit</artifactId>
+            <version>${concurrentJunit.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

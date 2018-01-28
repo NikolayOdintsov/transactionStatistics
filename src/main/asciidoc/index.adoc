@@ -25,17 +25,30 @@ include::{snippets}/statistics/http-response.adoc[]
 [[resources-post-transactions]]
 ==== /transactions
 
-A `POST` request will register (add) transaction.
+A `POST` request will register (add) transaction if it is **NOT older than 60 seconds**.
+Returns: Empty body with either 201 or 204 error code.
+
+===== Request structure
+
+include::{snippets}/transactions-success/request-fields.adoc[]
 
 ===== Example request
 
 bash:
-include::{snippets}/transactions/curl-request.adoc[]
+include::{snippets}/create-transactions-success/curl-request.adoc[]
 
 HTTP:
-include::{snippets}/transactions/http-request.adoc[]
+include::{snippets}/create-transactions-success/http-request.adoc[]
+
+===== Request structure
+Empty body. With error code response:
+
+- 201 - in case of success
+- 204 - if transaction is older than 60 seconds
 
 ===== Example response
 
-include::{snippets}/transactions/http-response.adoc[]
+include::{snippets}/create-transactions-success/http-response.adoc[]
+
+include::{snippets}/create-transactions-no-content/http-response.adoc[]
 //--------------------------------------------------------

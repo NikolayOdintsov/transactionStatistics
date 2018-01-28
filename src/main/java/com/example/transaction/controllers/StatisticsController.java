@@ -17,7 +17,7 @@ public class StatisticsController {
     private static final Logger logger = LoggerFactory.getLogger(StatisticsController.class);
 
     @GetMapping(produces = "application/json")
-    public ResponseEntity<String> statistics() {
+    public ResponseEntity<String> getStatistics() {
         logger.debug("GET statistics called");
 
         // TODO: impl
