@@ -99,8 +99,8 @@ public class TransactionStatisticsServiceTest {
     @Test
     public void shouldReturnTransactionStatistics() throws JSONException {
         //given
-        JSONObject expectedStatisticsJson = new JSONObject("{\"sum\": 55.000000, " +
-                "\"avg\": 5.500000, \"max\": 10.000000, \"min\": 1.000000, \"count\": 10}");
+        JSONObject expectedStatisticsJson = new JSONObject("{\"sum\": 55.00, " +
+                "\"avg\": 5.50, \"max\": 10.00, \"min\": 1.00, \"count\": 10}");
 
         int amountOfTransactions = 10;
         double sum = 0.00;
@@ -164,5 +164,25 @@ public class TransactionStatisticsServiceTest {
         assertEquals(10, statistics.getCount());
         assertEquals(0, Double.valueOf(sum).compareTo(statistics.getSum()));
         assertEquals(0, Double.valueOf(avg).compareTo(statistics.getAverage()));
+    }
+
+    @Test
+    public void shouldReturnTransactionZeroStatisticsWhenNoTransactionInStorage() throws JSONException {
+        //given
+        JSONObject expectedZeroStatisticsJson = new JSONObject("{\"sum\": 0.00, " +
+                "\"avg\": 0.00, \"max\": 0.00, \"min\": 0.00, \"count\": 0}");
+
+        //when
+        TransactionStatistics statistics = transactionService.getTransactionStatistics();
+
+        //then
+        assertNotNull(statistics);
+
+        //check JSON representation
+        JSONObject statisticsJson = new JSONObject(statistics.toString());
+        assertEquals(expectedZeroStatisticsJson.toString(), statisticsJson.toString());
+        assertEquals(0, Double.valueOf(0.00).compareTo(statistics.getSum()));
+        assertEquals(0, Double.valueOf(0.00).compareTo(statistics.getAverage()));
+        assertEquals(0, statistics.getCount());
     }
 }

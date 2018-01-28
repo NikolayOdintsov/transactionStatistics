@@ -21,11 +21,11 @@ public class TransactionStatistics extends DoubleSummaryStatistics {
     @Override
     public String toString() {
         return String.format(
-                "{\"sum\": %f, \"avg\": %f, \"max\": %f, \"min\": %f, \"count\": %d}",
+                "{\"sum\": %.2f, \"avg\": %.2f, \"max\": %.2f, \"min\": %.2f, \"count\": %d}",
                 getSum(),
                 getAverage(),
-                getMax(),
-                getMin(),
+                getMax() == Double.NEGATIVE_INFINITY ? 0 : getMax(),
+                getMin() == Double.POSITIVE_INFINITY ? 0 : getMin(),
                 getCount());
     }
 }
