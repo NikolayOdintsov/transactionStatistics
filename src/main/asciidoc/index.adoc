@@ -1,0 +1,41 @@
+== Transaction statistics API:
+
+=== <<resources-get-statistics, /statistics>>
+=== <<resources-post-transactions, /transactions>>
+
+//--------------------------------------------------------
+[[resources-get-statistics]]
+==== /statistics
+
+A `GET` request will return transaction statistics.
+
+===== Example request
+
+bash:
+include::{snippets}/statistics/curl-request.adoc[]
+
+HTTP:
+include::{snippets}/statistics/http-request.adoc[]
+
+===== Example response
+
+include::{snippets}/statistics/http-response.adoc[]
+//--------------------------------------------------------
+
+[[resources-post-transactions]]
+==== /transactions
+
+A `POST` request will register (add) transaction.
+
+===== Example request
+
+bash:
+include::{snippets}/transactions/curl-request.adoc[]
+
+HTTP:
+include::{snippets}/transactions/http-request.adoc[]
+
+===== Example response
+
+include::{snippets}/transactions/http-response.adoc[]
+//--------------------------------------------------------
