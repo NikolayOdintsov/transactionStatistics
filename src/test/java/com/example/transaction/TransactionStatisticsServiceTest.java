@@ -1,13 +1,17 @@
 package com.example.transaction;
 
 import com.example.transaction.models.Transaction;
+import com.example.transaction.models.TransactionStatistics;
 import com.example.transaction.service.TransactionService;
 import com.example.transaction.service.TransactionServiceImpl;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -23,7 +27,7 @@ public class TransactionStatisticsServiceTest {
         //given
         int amountOfTransactions = 10;
 
-        Map transactions;
+        Map<UUID, Transaction> transactions;
         Transaction firstTZ = null;
         Transaction lastTZ = null;
 
@@ -59,7 +63,7 @@ public class TransactionStatisticsServiceTest {
         //given
         int amountOfTransactions = 60001;
 
-        Map transactions;
+        Map<UUID, Transaction> transactions;
         Transaction firstTZ = null;
         Transaction lastTZ = null;
 
@@ -93,11 +97,72 @@ public class TransactionStatisticsServiceTest {
 
 
     @Test
-    public void shouldReturnTransactionStatistics() {
+    public void shouldReturnTransactionStatistics() throws JSONException {
         //given
+        JSONObject expectedStatisticsJson = new JSONObject("{\"sum\": 55.000000, " +
+                "\"avg\": 5.500000, \"max\": 10.000000, \"min\": 1.000000, \"count\": 10}");
+
+        int amountOfTransactions = 10;
+        double sum = 0.00;
+        for (int i = 1; i <= amountOfTransactions; i++) {
+            long timestamp = Instant.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+            Transaction tz = new Transaction(timestamp, i);
+            this.transactionService.addTransaction(tz);
+            sum += i;
+        }
+
+        double avg = sum / amountOfTransactions;
 
         //when
+        TransactionStatistics statistics = transactionService.getTransactionStatistics();
 
         //then
+        assertNotNull(statistics);
+        assertEquals(0, Double.valueOf(10.00).compareTo(statistics.getMax()));
+        assertEquals(0, Double.valueOf(1.00).compareTo(statistics.getMin()));
+        assertEquals(10, statistics.getCount());
+        assertEquals(0, Double.valueOf(sum).compareTo(statistics.getSum()));
+        assertEquals(0, Double.valueOf(avg).compareTo(statistics.getAverage()));
+        assertNotNull(statistics.toString());
+
+        //check JSON representation
+        JSONObject statisticsJson = new JSONObject(statistics.toString());
+        assertEquals(expectedStatisticsJson.toString(), statisticsJson.toString());
+    }
+
+    @Test
+    public void shouldReturnTransactionStatisticsAndSkipOldTransaction() {
+        //given
+        int amountOfTransactions = 15;
+        int amountOfValidTransactions = 10;
+        double sum = 0.00;
+        for (int i = 1; i <= amountOfTransactions; i++) {
+            Transaction tz;
+
+            if (i <= amountOfValidTransactions) {
+                long timestamp = Instant.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+                tz = new Transaction(timestamp, i);
+                sum += i;
+            } else {
+                //adding outdated transactions
+                long timestamp = Instant.now().atZone(ZoneOffset.UTC).minusSeconds(60).toInstant().toEpochMilli();
+                tz = new Transaction(timestamp, i);
+            }
+
+            this.transactionService.addTransaction(tz);
+        }
+
+        double avg = sum / amountOfValidTransactions;
+
+        //when
+        TransactionStatistics statistics = transactionService.getTransactionStatistics();
+
+        //then
+        assertNotNull(statistics);
+        assertEquals(0, Double.valueOf(10.00).compareTo(statistics.getMax()));
+        assertEquals(0, Double.valueOf(1.00).compareTo(statistics.getMin()));
+        assertEquals(10, statistics.getCount());
+        assertEquals(0, Double.valueOf(sum).compareTo(statistics.getSum()));
+        assertEquals(0, Double.valueOf(avg).compareTo(statistics.getAverage()));
     }
 }

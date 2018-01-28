@@ -1,10 +1,20 @@
 package com.example.transaction;
 
+import com.example.transaction.controllers.StatisticsController;
+import com.example.transaction.models.Transaction;
+import com.example.transaction.models.TransactionStatistics;
+import com.example.transaction.service.TransactionService;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -14,12 +24,16 @@ import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.PayloadDocumentation;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
@@ -33,7 +47,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @WebAppConfiguration
-public class TransactionStatisticsApplicationTests {
+public class TransactionStatisticsControllersTests {
 
     private MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
             MediaType.APPLICATION_JSON.getSubtype(),
@@ -42,12 +56,21 @@ public class TransactionStatisticsApplicationTests {
     @Rule
     public final JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation("target/generated-snippets");
 
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private TransactionService transactionServiceMock;
+
+    @Autowired
+    private StatisticsController statisticsController;
+
     private MockMvc mockMvc;
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
     @Before
     public void setup() throws Exception {
+        MockitoAnnotations.initMocks(this);
+
         this.mockMvc = webAppContextSetup(this.webApplicationContext)
                 .apply(documentationConfiguration(this.restDocumentation).uris()
                         .withScheme("http")
@@ -56,17 +79,24 @@ public class TransactionStatisticsApplicationTests {
                 .alwaysDo(document("{method-name}",
                         preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())))
                 .build();
+
+        StatisticsController unwrappedController = (StatisticsController) unwrapProxy(statisticsController);
+        ReflectionTestUtils.setField(unwrappedController, "transactionService", transactionServiceMock);
     }
 
     @Test
     public void getStatistics() throws Exception {
+        //given
+        TransactionStatistics statistics = getMockedTransactionStatistics();
+        Mockito.when(this.transactionServiceMock.getTransactionStatistics()).thenReturn(statistics);
 
+        //when & then
         RestDocumentationResultHandler document = this.documentPrettyPrintReqResp("statistics");
 
         this.mockMvc.perform(get("/statistics"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(this.contentType))
-                .andExpect(content().string(""))
+                .andExpect(content().string(statistics.toString()))
                 .andDo(document);
     }
 
@@ -120,5 +150,32 @@ public class TransactionStatisticsApplicationTests {
         return document(useCase,
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()));
+    }
+
+    private static final Object unwrapProxy(Object bean) throws Exception {
+        if (AopUtils.isAopProxy(bean) && bean instanceof Advised) {
+            Advised advised = (Advised) bean;
+            bean = advised.getTargetSource().getTarget();
+        }
+        return bean;
+    }
+
+    private TransactionStatistics getMockedTransactionStatistics() {
+        Map<UUID, Transaction> transactions = new HashMap<>();
+        for (int i = 0; i < 10; i++) {
+            long timestamp = Instant.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+            Transaction tz = new Transaction(timestamp, i);
+            transactions.put(UUID.randomUUID(), tz);
+        }
+
+        /**
+         grabbed code snippet from {@link com.example.transaction.service.TransactionServiceImpl#getTransactionStatistics}
+         */
+        return transactions.values().stream()
+                .filter(Transaction::isValid)
+                .mapToDouble(Transaction::getAmount)
+                .collect(TransactionStatistics::new,
+                        TransactionStatistics::accept,
+                        TransactionStatistics::combine);
     }
 }

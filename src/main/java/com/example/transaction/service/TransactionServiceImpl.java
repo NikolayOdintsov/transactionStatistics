@@ -1,10 +1,11 @@
 package com.example.transaction.service;
 
 import com.example.transaction.models.Transaction;
+import com.example.transaction.models.TransactionStatistics;
 import com.example.transaction.service.storage.TransactionStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.UUID;
@@ -16,6 +17,7 @@ import java.util.UUID;
  * <p/>
  * Method addTransaction stores transaction in TransactionStorage if transaction is not older than 60 seconds.
  * Method getAllTransactions returns all stored transactions.
+ * Method getStatistics returns the statistic based on transactions of the last 60 seconds.
  * <p/>
  * Uses UUID value as key in storage. Values generated randomly.
  * Solves case when transactions could happen at the same time in concurrent environment.
@@ -26,7 +28,7 @@ import java.util.UUID;
  * Created by nikolay.odintsov on 28.01.18.
  */
 
-@Component
+@Service
 public class TransactionServiceImpl implements TransactionService<UUID, Transaction> {
     private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
     /**
@@ -53,6 +55,18 @@ public class TransactionServiceImpl implements TransactionService<UUID, Transact
     @Override
     public Map<UUID, Transaction> getAllTransactions() {
         return this.transactions.getAll();
+    }
+
+    @Override
+    public TransactionStatistics getTransactionStatistics() {
+        TransactionStatistics statistics = this.getAllTransactions().values().stream()
+                .filter(Transaction::isValid)
+                .mapToDouble(Transaction::getAmount)
+                .collect(TransactionStatistics::new,
+                        TransactionStatistics::accept,
+                        TransactionStatistics::combine);
+
+        return statistics;
     }
 
 }

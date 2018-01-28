@@ -99,4 +99,9 @@ public class Transaction {
         Instant transactionTime = Instant.ofEpochMilli(timestamp).atZone(ZoneOffset.UTC).toInstant();
         return Duration.between(transactionTime, instantNow).getSeconds() >= TTL;
     }
+
+    public boolean isValid() {
+        return !this.isOutdated();
+    }
+
 }

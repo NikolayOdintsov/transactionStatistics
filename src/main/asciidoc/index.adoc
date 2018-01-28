@@ -8,6 +8,7 @@
 ==== /statistics
 
 A `GET` request will return transaction statistics.
+Endpoint executes in linear time (O(n)) and constant memory (O(1)).
 
 ===== Example request
 
@@ -27,6 +28,7 @@ include::{snippets}/statistics/http-response.adoc[]
 
 A `POST` request will register (add) transaction if it is **NOT older than 60 seconds**.
 Returns: Empty body with either 201 or 204 error code.
+Endpoint executes in constant time and memory (O(1)).
 
 ===== Request structure
 

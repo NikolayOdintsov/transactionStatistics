@@ -1,6 +1,7 @@
 package com.example.transaction.service;
 
 import com.example.transaction.models.Transaction;
+import com.example.transaction.models.TransactionStatistics;
 
 import java.util.Map;
 
@@ -16,4 +17,6 @@ public interface TransactionService<K, V> {
     boolean addTransaction(Transaction transaction);
 
     Map<K, V> getAllTransactions();
+
+    TransactionStatistics getTransactionStatistics();
 }
