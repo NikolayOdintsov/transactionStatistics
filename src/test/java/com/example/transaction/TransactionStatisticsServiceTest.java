@@ -114,6 +114,7 @@ public class TransactionStatisticsServiceTest {
         double avg = sum / amountOfTransactions;
 
         //when
+        transactionService.calculateTransactionStatistics();
         TransactionStatistics statistics = transactionService.getTransactionStatistics();
 
         //then
@@ -155,6 +156,7 @@ public class TransactionStatisticsServiceTest {
         double avg = sum / amountOfValidTransactions;
 
         //when
+        transactionService.calculateTransactionStatistics();
         TransactionStatistics statistics = transactionService.getTransactionStatistics();
 
         //then

@@ -24,8 +24,8 @@ import static org.junit.Assert.assertEquals;
  */
 
 @RunWith(ConcurrentTestRunner.class)
-public class TransactionStatisticsServiceConcurrencyTest {
-    private static final Logger logger = LoggerFactory.getLogger(TransactionStatisticsServiceConcurrencyTest.class);
+public class AddTransactionConcurrencyTest {
+    private static final Logger logger = LoggerFactory.getLogger(AddTransactionConcurrencyTest.class);
     /**
      * It is highly advised to play around with THREAD_COUNT param value and running test several times.
      */

@@ -8,7 +8,7 @@
 ==== /statistics
 
 A `GET` request will return transaction statistics.
-Endpoint executes in linear time (O(n)) and constant memory (O(1)).
+Endpoint executes in constant time and memory (O(1)).
 
 ===== Example request
 
