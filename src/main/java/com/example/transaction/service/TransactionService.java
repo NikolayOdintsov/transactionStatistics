@@ -19,4 +19,6 @@ public interface TransactionService<K, V> {
     Map<K, V> getAllTransactions();
 
     TransactionStatistics getTransactionStatistics();
+
+    void calculateTransactionStatistics();
 }

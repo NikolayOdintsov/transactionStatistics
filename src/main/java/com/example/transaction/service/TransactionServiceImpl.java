@@ -37,9 +37,10 @@ public class TransactionServiceImpl implements TransactionService<UUID, Transact
     public static final int MAX_STORAGE_CAPACITY = 60 * 1000;
 
     private TransactionStorage transactions = new TransactionStorage<UUID, Transaction>(MAX_STORAGE_CAPACITY);
+    private TransactionStatistics statistics = new TransactionStatistics();
 
     @Override
-    public boolean addTransaction(Transaction transaction) {
+    public synchronized boolean addTransaction(Transaction transaction) {
         if (transaction.isOutdated()) {
             logger.debug(transaction + " is outdated. Not stored.");
 
@@ -59,14 +60,16 @@ public class TransactionServiceImpl implements TransactionService<UUID, Transact
 
     @Override
     public TransactionStatistics getTransactionStatistics() {
-        TransactionStatistics statistics = this.getAllTransactions().values().stream()
+        return this.statistics;
+    }
+
+    @Override
+    public void calculateTransactionStatistics() {
+        this.statistics = this.getAllTransactions().values().stream()
                 .filter(Transaction::isValid)
                 .mapToDouble(Transaction::getAmount)
                 .collect(TransactionStatistics::new,
                         TransactionStatistics::accept,
                         TransactionStatistics::combine);
-
-        return statistics;
     }
-
 }

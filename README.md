@@ -2,6 +2,7 @@
 
 Restful API for transactions statistics. 
 The main use case for the API is to calculate realtime statistic from the last 60 seconds.
+Endpoints execute in constant time and memory (O(1)).
 
 ## Getting started
 
