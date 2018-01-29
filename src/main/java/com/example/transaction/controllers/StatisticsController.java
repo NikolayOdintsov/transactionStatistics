@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.Callable;
+
 /**
  * Created by nikolay.odintsov on 27.01.18.
  */
@@ -22,9 +24,9 @@ public class StatisticsController {
     private TransactionService transactionService;
 
     @GetMapping(produces = "application/json")
-    public ResponseEntity<String> getStatistics() {
+    public Callable<ResponseEntity<String>> getStatistics() {
         logger.debug("GET statistics called");
 
-        return ResponseEntity.ok(this.transactionService.getTransactionStatistics().toString());
+        return () -> ResponseEntity.ok(this.transactionService.getTransactionStatistics().toString());
     }
 }

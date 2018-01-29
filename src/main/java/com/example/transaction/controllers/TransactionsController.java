@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.Callable;
+
 /**
  * Created by nikolay.odintsov on 27.01.18.
  */
@@ -25,15 +27,17 @@ public class TransactionsController {
     private TransactionService transactionService;
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<?> addTransactions(@RequestBody Transaction transaction) {
+    public Callable<ResponseEntity<?>> addTransactions(@RequestBody Transaction transaction) {
         logger.debug("POST transactions called. Transaction: " + transaction);
 
-        boolean success = this.transactionService.addTransaction(transaction);
+        return () -> {
+            boolean success = this.transactionService.addTransaction(transaction);
 
-        if (success) {
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        } else {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
+            if (success) {
+                return ResponseEntity.status(HttpStatus.CREATED).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
+        };
     }
 }
