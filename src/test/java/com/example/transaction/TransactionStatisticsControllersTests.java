@@ -26,6 +26,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.Charset;
@@ -38,10 +39,9 @@ import java.util.UUID;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
@@ -87,13 +87,19 @@ public class TransactionStatisticsControllersTests {
     @Test
     public void getStatistics() throws Exception {
         //given
+        RestDocumentationResultHandler document = this.documentPrettyPrintReqResp("statistics");
+
         TransactionStatistics statistics = getMockedTransactionStatistics();
         Mockito.when(this.transactionServiceMock.getTransactionStatistics()).thenReturn(statistics);
 
-        //when & then
-        RestDocumentationResultHandler document = this.documentPrettyPrintReqResp("statistics");
+        //when
+        MvcResult mvcResult = this.mockMvc.perform(get("/statistics"))
+                .andExpect(status().isOk())
+                .andExpect(request().asyncStarted())
+                .andReturn();
 
-        this.mockMvc.perform(get("/statistics"))
+        //then
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(this.contentType))
                 .andExpect(content().string(statistics.toString()))
@@ -102,7 +108,7 @@ public class TransactionStatisticsControllersTests {
 
     @Test
     public void createTransactionsSuccess() throws Exception {
-
+        //given
         RestDocumentationResultHandler snippet = this.documentPrettyPrintReqResp("transactions-success");
 
         long timestamp = Instant.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
@@ -110,9 +116,16 @@ public class TransactionStatisticsControllersTests {
         requestBody.put("amount", 12.3);
         requestBody.put("timestamp", timestamp);
 
-        this.mockMvc.perform(post("/transactions")
+        //when
+        MvcResult mvcResult = this.mockMvc.perform(post("/transactions")
                 .contentType(this.contentType)
                 .content(requestBody.toString()))
+                .andExpect(status().isOk())
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        //then
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(""))
                 .andDo(snippet.document(
@@ -125,16 +138,23 @@ public class TransactionStatisticsControllersTests {
 
     @Test
     public void createTransactionsNoContent() throws Exception {
-
+        //given
         RestDocumentationResultHandler snippet = this.documentPrettyPrintReqResp("transactions-no-content");
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("amount", 12.3);
         requestBody.put("timestamp", 1478192204000l);
 
-        this.mockMvc.perform(post("/transactions")
+        //when
+        MvcResult mvcResult = this.mockMvc.perform(post("/transactions")
                 .contentType(this.contentType)
                 .content(requestBody.toString()))
+                .andExpect(status().isOk())
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        //then
+        this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""))
                 .andDo(snippet);

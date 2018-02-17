@@ -77,7 +77,6 @@ public class TransactionStatisticsServiceTest {
             } else if (i == amountOfTransactions) {
                 lastTZ = tz;
             }
-
             this.transactionService.addTransaction(tz);
         }
         transactions = transactionService.getAllTransactions();

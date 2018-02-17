@@ -31,15 +31,15 @@ public class ComputeStatisticsScheduledTest {
 
     @Test
     public void getTransactionStatisticsTest() throws InterruptedException {
-        //give scheduled task to start at least once
-        Thread.sleep(1000);
-
         ExecutorService executor = Executors.newFixedThreadPool(30);
         for (int i = 0; i < 30; i++) {
             executor.execute(addTransaction());
         }
         executor.shutdown();
         executor.awaitTermination(50, TimeUnit.SECONDS);
+
+        //give scheduled task to start at least once
+        Thread.sleep(1000);
 
         assertEquals("Statistics test", getExpected().toString(), transactionService.getTransactionStatistics().toString());
     }
